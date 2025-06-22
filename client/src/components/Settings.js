@@ -18,8 +18,7 @@ import {
   Language as LanguageIcon,
   Article as ArticleIcon,
   TrendingUp as TrendingUpIcon,
-  Recycling as RecyclingIcon,
-  Eco as EcoIcon
+  Recycling as RecyclingIcon
 } from '@mui/icons-material';
 
 export default function Settings({ darkMode, setDarkMode }) {
@@ -31,7 +30,7 @@ export default function Settings({ darkMode, setDarkMode }) {
     { name: "All", icon: <ArticleIcon /> },
     { name: "Innovation", icon: <TrendingUpIcon /> },
     { name: "Tips", icon: <RecyclingIcon /> },
-    { name: "Composting", icon: <EcoIcon /> }
+    { name: "Composting", icon: <span role="img" aria-label="compost">🌱</span> }
   ];
 
   return (
