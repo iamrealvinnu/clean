@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Fab, Tooltip, Zoom } from '@mui/material';
+import { CssBaseline, Box, Fab, Tooltip } from '@mui/material';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import DriverDashboard from './DriverDashboard';

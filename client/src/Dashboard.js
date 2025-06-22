@@ -15,24 +15,19 @@ import {
   CircularProgress, 
   Alert, 
   Chip,
-  Fade,
-  LinearProgress,
-  IconButton,
-  Tooltip
+  Fade
 } from '@mui/material';
 import {
-  DirectionsCar as DirectionsCarIcon,
-  ReportProblem as ReportProblemIcon,
-  EmojiEvents as EmojiEventsIcon,
-  Recycling as RecyclingIcon,
-  TrendingUp as TrendingUpIcon,
-  Schedule as ScheduleIcon,
-  LocationOn as LocationIcon,
-  CheckCircle as CheckCircleIcon,
-  Message as MessageIcon
+  ReportProblemIcon,
+  EmojiEventsIcon,
+  RecyclingIcon,
+  ScheduleIcon,
+  LocationIcon,
+  CheckCircleIcon,
+  MessageIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { wasteAPI, trackingAPI, communicationAPI } from './api';
+import { wasteAPI, trackingAPI } from './api';
 import VehicleTracking from './VehicleTracking';
 import Messaging from './components/Messaging';
 
@@ -54,10 +49,8 @@ const leaderboard = [
 
 export default function Dashboard({ user, onLogout }) {
   const [nextPickup, setNextPickup] = useState(null);
-  const [schedule, setSchedule] = useState([]);
   const [reports, setReports] = useState([]);
   const [analytics, setAnalytics] = useState(null);
-  const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [messagingOpen, setMessagingOpen] = useState(false);
@@ -72,17 +65,14 @@ export default function Dashboard({ user, onLogout }) {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [schedulesRes, reportsRes, analyticsRes, vehiclesRes] = await Promise.all([
+      const [schedulesRes, reportsRes, analyticsRes] = await Promise.all([
         wasteAPI.getSchedules(),
         wasteAPI.getReports(),
-        wasteAPI.getAnalytics(),
-        trackingAPI.getVehicles()
+        wasteAPI.getAnalytics()
       ]);
       
-      setSchedule(schedulesRes);
       setReports(reportsRes);
       setAnalytics(analyticsRes);
-      setVehicles(vehiclesRes);
       
       // Find next pickup for user's ward
       const userWardSchedules = schedulesRes.filter(s => s.ward === user.ward);
@@ -298,10 +288,6 @@ export default function Dashboard({ user, onLogout }) {
                       <Box display="flex" justifyContent="space-between" mb={2}>
                         <Typography>Resolution Rate:</Typography>
                         <Chip label={`${analytics.resolutionRate}%`} color="success" />
-                      </Box>
-                      <Box display="flex" justifyContent="space-between" mb={2}>
-                        <Typography>Active Vehicles:</Typography>
-                        <Chip label={analytics.totalVehicles} color="info" />
                       </Box>
                       <Box display="flex" justifyContent="space-between" mb={2}>
                         <Typography>Satisfaction:</Typography>

@@ -16,13 +16,6 @@ import {
   Chip,
   LinearProgress,
   IconButton,
-  Tooltip,
-  Paper,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Dialog,
   DialogTitle,
@@ -37,17 +30,11 @@ import {
 } from '@mui/material';
 import {
   Group as GroupIcon,
-  EventNote as EventNoteIcon,
   DirectionsCar as DirectionsCarIcon,
-  BarChart as BarChartIcon,
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Visibility as VisibilityIcon,
-  TrendingUp as TrendingUpIcon,
   Report as ReportIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   Message as MessageIcon,
   Notifications as NotificationsIcon
 } from '@mui/icons-material';
@@ -58,10 +45,7 @@ import {
   YAxis, 
   Tooltip as RechartsTooltip, 
   ResponsiveContainer, 
-  Legend,
-  PieChart,
-  Pie,
-  Cell
+  Legend
 } from 'recharts';
 import { adminAPI, wasteAPI, trackingAPI, communicationAPI } from './api';
 import Messaging from './components/Messaging';
@@ -75,8 +59,6 @@ const collectionStats = [
   { day: 'Sat', pickups: 90, missed: 4 },
   { day: 'Sun', pickups: 80, missed: 6 },
 ];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function Admin({ user }) {
   const [users, setUsers] = useState([]);

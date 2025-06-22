@@ -16,23 +16,13 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Chip,
-  LinearProgress,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  Paper,
-  FormControl,
-  InputLabel,
-  Select
+  Chip
 } from '@mui/material';
 import {
   DirectionsCar as DirectionsCarIcon,
   Map as MapIcon,
   ReportProblem as ReportProblemIcon,
   Schedule as ScheduleIcon,
-  LocationOn as LocationIcon,
-  Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Message as MessageIcon
@@ -43,7 +33,7 @@ import {
   Marker, 
   useJsApiLoader 
 } from '@react-google-maps/api';
-import { driverAPI, trackingAPI, communicationAPI } from './api';
+import { driverAPI, trackingAPI } from './api';
 import Messaging from './components/Messaging';
 
 const mockRoute = [
@@ -148,16 +138,6 @@ export default function DriverDashboard({ user }) {
       setTimeout(() => setIncidentMsg(''), 3000);
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'On Route': return 'success';
-      case 'Idle': return 'warning';
-      case 'Maintenance': return 'error';
-      case 'Break': return 'info';
-      default: return 'default';
     }
   };
 

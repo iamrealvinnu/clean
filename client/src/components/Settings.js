@@ -25,13 +25,6 @@ export default function Settings({ darkMode, setDarkMode }) {
   const [emailUpdates, setEmailUpdates] = useState(false);
   const [language, setLanguage] = useState('en');
 
-  const categories = [
-    { name: "All", icon: <ArticleIcon /> },
-    { name: "Innovation", icon: <TrendingUpIcon /> },
-    { name: "Tips", icon: <RecyclingIcon /> },
-    { name: "Composting", icon: <span role="img" aria-label="compost">🌱</span> }
-  ];
-
   return (
     <Fade in={true} timeout={800}>
       <Box maxWidth={600} mx="auto" mt={4}>

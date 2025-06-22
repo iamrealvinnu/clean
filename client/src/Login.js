@@ -11,9 +11,7 @@ import {
   Avatar,
   InputAdornment,
   IconButton,
-  Fade,
-  Link,
-  Divider
+  Fade
 } from '@mui/material';
 import {
   Visibility,
