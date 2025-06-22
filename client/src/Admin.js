@@ -139,17 +139,6 @@ export default function Admin({ user }) {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await adminAPI.deleteUser(userId);
-        fetchAdminData();
-      } catch (err) {
-        setError('Failed to delete user');
-      }
-    }
-  };
-
   const handleBroadcastMessage = async () => {
     if (!broadcastMessage.trim()) return;
     

@@ -17,10 +17,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   Chip,
-  Paper,
-  Fade
+  Paper
 } from '@mui/material';
 import {
   Menu as MenuIcon,

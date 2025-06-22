@@ -46,7 +46,6 @@ export default function Messaging({ user, isOpen, onClose }) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedRecipient, setSelectedRecipient] = useState('');
   const [recipients, setRecipients] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('messages');
   const messagesEndRef = useRef(null);
 
@@ -69,7 +68,6 @@ export default function Messaging({ user, isOpen, onClose }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const [messagesRes, notificationsRes] = await Promise.all([
         communicationAPI.getMessages(user.id),
         communicationAPI.getNotifications(user.id)
@@ -82,8 +80,6 @@ export default function Messaging({ user, isOpen, onClose }) {
       setRecipients(availableRecipients);
     } catch (err) {
       console.error('Failed to fetch communication data:', err);
-    } finally {
-      setLoading(false);
     }
   };
 

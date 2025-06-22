@@ -21,10 +21,8 @@ import {
   useJsApiLoader 
 } from '@react-google-maps/api';
 import {
-  DirectionsCar as DirectionsCarIcon,
   LocationOn as LocationIcon,
-  Refresh as RefreshIcon,
-  Info as InfoIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { trackingAPI } from './api';
 

@@ -59,7 +59,6 @@ export default function Reports({ user }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
 
   useEffect(() => {
     fetchReports();
