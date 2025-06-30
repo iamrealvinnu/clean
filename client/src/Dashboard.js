@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   Box, 
   Typography, 
@@ -27,7 +27,7 @@ import {
   MessageIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { wasteAPI, trackingAPI } from './api';
+import { wasteAPI } from './api';
 import VehicleTracking from './VehicleTracking';
 import Messaging from './components/Messaging';
 
@@ -55,14 +55,7 @@ export default function Dashboard({ user, onLogout }) {
   const [error, setError] = useState('');
   const [messagingOpen, setMessagingOpen] = useState(false);
 
-  useEffect(() => {
-    fetchDashboardData();
-    // Set up real-time updates every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const [schedulesRes, reportsRes, analyticsRes] = await Promise.all([
@@ -88,7 +81,14 @@ export default function Dashboard({ user, onLogout }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.ward]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    // Set up real-time updates every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchDashboardData]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -374,4 +374,4 @@ export default function Dashboard({ user, onLogout }) {
       </Box>
     </Fade>
   );
-} 
+}

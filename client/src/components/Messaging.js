@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -19,7 +19,8 @@ import {
   Badge,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -46,20 +47,7 @@ export default function Messaging({ user, isOpen, onClose }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchData();
-      // Set up real-time updates every 10 seconds
-      const interval = setInterval(fetchData, 10000);
-      return () => clearInterval(interval);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [messagesRes, notificationsRes] = await Promise.all([
         communicationAPI.getMessages(user.id),
@@ -74,7 +62,20 @@ export default function Messaging({ user, isOpen, onClose }) {
     } catch (err) {
       console.error('Failed to fetch communication data:', err);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+      // Set up real-time updates every 10 seconds
+      const interval = setInterval(fetchData, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, fetchData]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const getAvailableRecipients = () => {
     const allUsers = [
@@ -373,4 +374,4 @@ export default function Messaging({ user, isOpen, onClose }) {
       </DialogContent>
     </Dialog>
   );
-} 
+}

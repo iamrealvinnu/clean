@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Box, 
   Typography, 
@@ -16,7 +16,8 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   DirectionsCar as DirectionsCarIcon,
@@ -63,6 +64,23 @@ export default function DriverDashboard({ user }) {
     googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY' 
   });
 
+  const fetchDriverData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [scheduleRes, vehiclesRes] = await Promise.all([
+        driverAPI.getDriverSchedule(user.id),
+        trackingAPI.getVehicles()
+      ]);
+      
+      setSchedule(scheduleRes);
+      setVehicles(vehiclesRes.filter(v => v.driver === user.name));
+    } catch (err) {
+      console.error('Failed to load driver data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user.id, user.name]);
+
   useEffect(() => {
     fetchDriverData();
     // Get current location
@@ -79,24 +97,7 @@ export default function DriverDashboard({ user }) {
         }
       );
     }
-  }, []);
-
-  const fetchDriverData = async () => {
-    try {
-      setLoading(true);
-      const [scheduleRes, vehiclesRes] = await Promise.all([
-        driverAPI.getDriverSchedule(user.id),
-        trackingAPI.getVehicles()
-      ]);
-      
-      setSchedule(scheduleRes);
-      setVehicles(vehiclesRes.filter(v => v.driver === user.name));
-    } catch (err) {
-      console.error('Failed to load driver data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchDriverData]);
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
@@ -389,4 +390,4 @@ export default function DriverDashboard({ user }) {
       </Box>
     </Fade>
   );
-} 
+}

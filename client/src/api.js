@@ -445,12 +445,15 @@ export const communicationAPI = {
   }
 };
 
-// Export all APIs
-export default {
+// Create the API object
+const api = {
   auth: authAPI,
   waste: wasteAPI,
   tracking: trackingAPI,
   admin: adminAPI,
   driver: driverAPI,
   communication: communicationAPI
-}; 
+};
+
+// Export all APIs
+export default api;
