@@ -98,8 +98,7 @@ const vehicleSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for better performance
-vehicleSchema.index({ vehicleId: 1 });
+// Indexes for better performance (removed duplicate vehicleId index)
 vehicleSchema.index({ driver: 1 });
 vehicleSchema.index({ status: 1 });
 vehicleSchema.index({ 'currentLocation.lat': 1, 'currentLocation.lng': 1 });

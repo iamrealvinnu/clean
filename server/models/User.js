@@ -91,8 +91,7 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better query performance
-userSchema.index({ email: 1 });
+// Index for better query performance (removed duplicate email index)
 userSchema.index({ role: 1, ward: 1 });
 userSchema.index({ points: -1 });
 
