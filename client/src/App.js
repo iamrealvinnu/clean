@@ -1,11 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Fab, Tooltip } from '@mui/material';
+import { CssBaseline, Box, Fab, Tooltip, CircularProgress } from '@mui/material';
 import Login from './Login';
-import Dashboard from './Dashboard';
-import DriverDashboard from './DriverDashboard';
-import Admin from './Admin';
 import Home from './Home';
 import Reports from './Reports';
 import VehicleTracking from './VehicleTracking';
@@ -14,9 +11,14 @@ import AnimatedBackground from './components/AnimatedBackground';
 import { Article as ArticleIcon, EmojiEvents as EmojiEventsIcon, Settings as SettingsIcon, Home as HomeIcon } from '@mui/icons-material';
 import './App.css';
 
+// Lazy load components for better performance
 const Blog = lazy(() => import('./components/Blog'));
 const EcoChallenges = lazy(() => import('./components/EcoChallenges'));
 const Settings = lazy(() => import('./components/Settings'));
+const EnhancedResidentDashboard = lazy(() => import('./components/EnhancedResidentDashboard'));
+const EnhancedDriverDashboard = lazy(() => import('./components/EnhancedDriverDashboard'));
+const EnhancedAdminDashboard = lazy(() => import('./components/EnhancedAdminDashboard'));
+const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
 
 function FloatingNav({ user }) {
   const location = useLocation();
@@ -74,6 +76,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const appTheme = createTheme({
@@ -106,6 +109,25 @@ function App() {
     shape: {
       borderRadius: 12,
     },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            borderRadius: 16,
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            textTransform: 'none',
+            fontWeight: 600,
+          },
+        },
+      },
+    },
   });
 
   if (loading) {
@@ -121,20 +143,12 @@ function App() {
             background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           }}
         >
-          <div style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                width: '60px',
-                height: '60px',
-                border: '4px solid #e2e8f0',
-                borderTop: '4px solid #1a365d',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 20px',
-              }}
-            />
-            <h2 style={{ color: '#1a365d', margin: 0 }}>Loading...</h2>
-          </div>
+          <Box textAlign="center">
+            <CircularProgress size={60} thickness={4} />
+            <Typography variant="h6" sx={{ mt: 2, color: 'primary.main' }}>
+              Loading Enhanced Waste Management System...
+            </Typography>
+          </Box>
         </Box>
       </ThemeProvider>
     );
@@ -147,7 +161,11 @@ function App() {
         <Router>
           <FloatingNav user={user} />
           <Box sx={{ minHeight: '100vh', background: 'transparent' }}>
-            <Suspense fallback={<Box p={8}><h2>Loading...</h2></Box>}>
+            <Suspense fallback={
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <CircularProgress size={60} />
+              </Box>
+            }>
               <Routes>
                 <Route 
                   path="/login" 
@@ -159,15 +177,26 @@ function App() {
                 />
                 <Route 
                   path="/dashboard" 
-                  element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                  element={
+                    user ? (
+                      user.role === 'resident' ? <EnhancedResidentDashboard user={user} /> :
+                      user.role === 'driver' ? <EnhancedDriverDashboard user={user} /> :
+                      user.role === 'admin' ? <EnhancedAdminDashboard user={user} /> :
+                      <Navigate to="/" />
+                    ) : <Navigate to="/login" />
+                  } 
                 />
                 <Route 
                   path="/driver" 
-                  element={user ? <DriverDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                  element={user?.role === 'driver' ? <EnhancedDriverDashboard user={user} /> : <Navigate to="/login" />} 
                 />
                 <Route 
                   path="/admin" 
-                  element={user ? <Admin user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                  element={user?.role === 'admin' ? <EnhancedAdminDashboard user={user} /> : <Navigate to="/login" />} 
+                />
+                <Route 
+                  path="/analytics" 
+                  element={user ? <AdvancedAnalytics user={user} /> : <Navigate to="/login" />} 
                 />
                 <Route 
                   path="/reports" 
@@ -191,7 +220,7 @@ function App() {
                 />
               </Routes>
             </Suspense>
-            {user && <Chatbot />}
+            {user && <Chatbot user={user} />}
           </Box>
         </Router>
       </AnimatedBackground>
