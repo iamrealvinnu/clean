@@ -23,7 +23,7 @@ import {
   RecyclingIcon,
   ScheduleIcon,
   LocationIcon,
-  CheckCircleIcon,
+  CheckCircle as CheckCircleIcon,
   MessageIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
