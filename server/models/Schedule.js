@@ -1,119 +1,98 @@
-const mongoose = require('mongoose');
+const { getDB } = require('../config/database');
+const { v4: uuidv4 } = require('uuid');
 
-const scheduleSchema = new mongoose.Schema({
-  ward: {
-    type: String,
-    required: true
-  },
-  route: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Route',
-    required: true
-  },
-  vehicle: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vehicle',
-    required: true
-  },
-  driver: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  wasteType: {
-    type: String,
-    enum: ['organic', 'recyclable', 'hazardous', 'electronic', 'mixed'],
-    required: true
-  },
-  scheduledDate: {
-    type: Date,
-    required: true
-  },
-  timeSlot: {
-    start: { type: String, required: true }, // "07:00"
-    end: { type: String, required: true }     // "12:00"
-  },
-  frequency: {
-    type: String,
-    enum: ['daily', 'weekly', 'bi-weekly', 'monthly'],
-    default: 'weekly'
-  },
-  status: {
-    type: String,
-    enum: ['scheduled', 'in-progress', 'completed', 'cancelled', 'delayed'],
-    default: 'scheduled'
-  },
-  estimatedDuration: Number, // in minutes
-  actualStartTime: Date,
-  actualEndTime: Date,
-  collectionPoints: [{
-    address: String,
-    coordinates: {
-      lat: Number,
-      lng: Number
-    },
-    estimatedTime: String,
-    actualTime: Date,
-    status: {
-      type: String,
-      enum: ['pending', 'collected', 'missed', 'partial'],
-      default: 'pending'
-    },
-    notes: String
-  }],
-  performance: {
-    onTimePercentage: Number,
-    collectionEfficiency: Number,
-    fuelUsed: Number,
-    distanceCovered: Number
-  },
-  weather: {
-    condition: String,
-    temperature: Number,
-    humidity: Number
-  },
-  notes: String,
-  isRecurring: {
-    type: Boolean,
-    default: false
-  },
-  recurringPattern: {
-    frequency: String,
-    daysOfWeek: [Number], // 0-6 (Sunday-Saturday)
-    endDate: Date
+class Schedule {
+  constructor(scheduleData) {
+    this.id = scheduleData.id || uuidv4();
+    this.vehicleId = scheduleData.vehicleId;
+    this.route = scheduleData.route;
+    this.startTime = scheduleData.startTime;
+    this.endTime = scheduleData.endTime;
+    this.status = scheduleData.status || 'scheduled';
+    this.createdAt = scheduleData.createdAt || new Date().toISOString();
+    this.updatedAt = scheduleData.updatedAt || new Date().toISOString();
   }
-}, {
-  timestamps: true
-});
 
-// Indexes
-scheduleSchema.index({ ward: 1, scheduledDate: 1 });
-scheduleSchema.index({ vehicle: 1, scheduledDate: 1 });
-scheduleSchema.index({ driver: 1, scheduledDate: 1 });
-scheduleSchema.index({ status: 1, scheduledDate: 1 });
+  static async create(scheduleData) {
+    const db = getDB();
+    const schedule = new Schedule(scheduleData);
 
-// Start collection method
-scheduleSchema.methods.startCollection = function() {
-  this.status = 'in-progress';
-  this.actualStartTime = new Date();
-  return this.save();
-};
+    const stmt = db.prepare(`
+      INSERT INTO schedules (id, vehicleId, route, startTime, endTime, status, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-// Complete collection method
-scheduleSchema.methods.completeCollection = function() {
-  this.status = 'completed';
-  this.actualEndTime = new Date();
-  
-  // Calculate performance metrics
-  const scheduledDuration = this.estimatedDuration;
-  const actualDuration = (this.actualEndTime - this.actualStartTime) / (1000 * 60); // minutes
-  
-  this.performance = {
-    ...this.performance,
-    onTimePercentage: Math.min(100, (scheduledDuration / actualDuration) * 100)
-  };
-  
-  return this.save();
-};
+    try {
+      stmt.run(
+        schedule.id, schedule.vehicleId, schedule.route, schedule.startTime,
+        schedule.endTime, schedule.status, schedule.createdAt, schedule.updatedAt
+      );
+      return schedule;
+    } catch (error) {
+      throw new Error(`Error creating schedule: ${error.message}`);
+    }
+  }
 
-module.exports = mongoose.model('Schedule', scheduleSchema);
+  static findById(id) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM schedules WHERE id = ?');
+    const scheduleData = stmt.get(id);
+    return scheduleData ? new Schedule(scheduleData) : null;
+  }
+
+  static findAll() {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM schedules ORDER BY startTime DESC');
+    const schedules = stmt.all();
+    return schedules.map(scheduleData => new Schedule(scheduleData));
+  }
+
+  static findByVehicleId(vehicleId) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM schedules WHERE vehicleId = ? ORDER BY startTime DESC');
+    const schedules = stmt.all(vehicleId);
+    return schedules.map(scheduleData => new Schedule(scheduleData));
+  }
+
+  static findByStatus(status) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM schedules WHERE status = ? ORDER BY startTime DESC');
+    const schedules = stmt.all(status);
+    return schedules.map(scheduleData => new Schedule(scheduleData));
+  }
+
+  async save() {
+    const db = getDB();
+    this.updatedAt = new Date().toISOString();
+    
+    const stmt = db.prepare(`
+      UPDATE schedules 
+      SET vehicleId = ?, route = ?, startTime = ?, endTime = ?, status = ?, updatedAt = ?
+      WHERE id = ?
+    `);
+
+    try {
+      stmt.run(
+        this.vehicleId, this.route, this.startTime, this.endTime,
+        this.status, this.updatedAt, this.id
+      );
+      return this;
+    } catch (error) {
+      throw new Error(`Error updating schedule: ${error.message}`);
+    }
+  }
+
+  static async delete(id) {
+    const db = getDB();
+    const stmt = db.prepare('DELETE FROM schedules WHERE id = ?');
+    
+    try {
+      const result = stmt.run(id);
+      return result.changes > 0;
+    } catch (error) {
+      throw new Error(`Error deleting schedule: ${error.message}`);
+    }
+  }
+}
+
+module.exports = Schedule;

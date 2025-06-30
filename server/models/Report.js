@@ -1,140 +1,101 @@
-const mongoose = require('mongoose');
+const { getDB } = require('../config/database');
+const { v4: uuidv4 } = require('uuid');
 
-const reportSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  type: {
-    type: String,
-    enum: ['missed-collection', 'overflow', 'damage', 'complaint', 'suggestion', 'hazard', 'illegal-dumping'],
-    required: true
-  },
-  title: {
-    type: String,
-    required: [true, 'Title is required'],
-    maxlength: [100, 'Title cannot exceed 100 characters']
-  },
-  description: {
-    type: String,
-    required: [true, 'Description is required'],
-    maxlength: [1000, 'Description cannot exceed 1000 characters']
-  },
-  location: {
-    address: String,
-    coordinates: {
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true }
-    },
-    ward: String
-  },
-  images: [{
-    url: String,
-    caption: String,
-    uploadedAt: { type: Date, default: Date.now }
-  }],
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'urgent'],
-    default: 'medium'
-  },
-  status: {
-    type: String,
-    enum: ['open', 'assigned', 'in-progress', 'resolved', 'closed', 'rejected'],
-    default: 'open'
-  },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  assignedAt: Date,
-  resolvedAt: Date,
-  estimatedResolution: Date,
-  category: {
-    type: String,
-    enum: ['collection', 'infrastructure', 'environmental', 'administrative', 'emergency']
-  },
-  tags: [String],
-  feedback: {
-    rating: {
-      type: Number,
-      min: 1,
-      max: 5
-    },
-    comment: String,
-    submittedAt: Date
-  },
-  updates: [{
-    message: String,
-    updatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    timestamp: { type: Date, default: Date.now },
-    type: { type: String, enum: ['status', 'assignment', 'comment', 'resolution'] }
-  }],
-  isPublic: {
-    type: Boolean,
-    default: true
-  },
-  votes: {
-    upvotes: { type: Number, default: 0 },
-    downvotes: { type: Number, default: 0 },
-    voters: [{
-      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      vote: { type: String, enum: ['up', 'down'] }
-    }]
+class Report {
+  constructor(reportData) {
+    this.id = reportData.id || uuidv4();
+    this.userId = reportData.userId;
+    this.type = reportData.type;
+    this.location = reportData.location;
+    this.description = reportData.description;
+    this.status = reportData.status || 'pending';
+    this.priority = reportData.priority || 'medium';
+    this.imageUrl = reportData.imageUrl;
+    this.createdAt = reportData.createdAt || new Date().toISOString();
+    this.updatedAt = reportData.updatedAt || new Date().toISOString();
   }
-}, {
-  timestamps: true
-});
 
-// Indexes
-reportSchema.index({ user: 1, createdAt: -1 });
-reportSchema.index({ status: 1, priority: 1 });
-reportSchema.index({ type: 1, 'location.ward': 1 });
-reportSchema.index({ 'location.coordinates.lat': 1, 'location.coordinates.lng': 1 });
+  static async create(reportData) {
+    const db = getDB();
+    const report = new Report(reportData);
 
-// Auto-assign priority based on type
-reportSchema.pre('save', function(next) {
-  if (this.isNew) {
-    switch (this.type) {
-      case 'hazard':
-      case 'illegal-dumping':
-        this.priority = 'urgent';
-        break;
-      case 'overflow':
-      case 'missed-collection':
-        this.priority = 'high';
-        break;
-      case 'damage':
-        this.priority = 'medium';
-        break;
-      default:
-        this.priority = 'low';
+    const stmt = db.prepare(`
+      INSERT INTO waste_reports (id, userId, type, location, description, status, priority, imageUrl, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    try {
+      stmt.run(
+        report.id, report.userId, report.type, report.location, report.description,
+        report.status, report.priority, report.imageUrl, report.createdAt, report.updatedAt
+      );
+      return report;
+    } catch (error) {
+      throw new Error(`Error creating report: ${error.message}`);
     }
   }
-  next();
-});
 
-// Add update method
-reportSchema.methods.addUpdate = function(message, updatedBy, type = 'comment') {
-  this.updates.push({
-    message,
-    updatedBy,
-    type,
-    timestamp: new Date()
-  });
-  return this.save();
-};
+  static findById(id) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM waste_reports WHERE id = ?');
+    const reportData = stmt.get(id);
+    return reportData ? new Report(reportData) : null;
+  }
 
-// Resolve report method
-reportSchema.methods.resolve = function(resolvedBy, message) {
-  this.status = 'resolved';
-  this.resolvedAt = new Date();
-  this.addUpdate(message || 'Report has been resolved', resolvedBy, 'resolution');
-  return this.save();
-};
+  static findAll() {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM waste_reports ORDER BY createdAt DESC');
+    const reports = stmt.all();
+    return reports.map(reportData => new Report(reportData));
+  }
 
-module.exports = mongoose.model('Report', reportSchema);
+  static findByUserId(userId) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM waste_reports WHERE userId = ? ORDER BY createdAt DESC');
+    const reports = stmt.all(userId);
+    return reports.map(reportData => new Report(reportData));
+  }
+
+  static findByStatus(status) {
+    const db = getDB();
+    const stmt = db.prepare('SELECT * FROM waste_reports WHERE status = ? ORDER BY createdAt DESC');
+    const reports = stmt.all(status);
+    return reports.map(reportData => new Report(reportData));
+  }
+
+  async save() {
+    const db = getDB();
+    this.updatedAt = new Date().toISOString();
+    
+    const stmt = db.prepare(`
+      UPDATE waste_reports 
+      SET type = ?, location = ?, description = ?, status = ?, priority = ?, 
+          imageUrl = ?, updatedAt = ?
+      WHERE id = ?
+    `);
+
+    try {
+      stmt.run(
+        this.type, this.location, this.description, this.status, this.priority,
+        this.imageUrl, this.updatedAt, this.id
+      );
+      return this;
+    } catch (error) {
+      throw new Error(`Error updating report: ${error.message}`);
+    }
+  }
+
+  static async delete(id) {
+    const db = getDB();
+    const stmt = db.prepare('DELETE FROM waste_reports WHERE id = ?');
+    
+    try {
+      const result = stmt.run(id);
+      return result.changes > 0;
+    } catch (error) {
+      throw new Error(`Error deleting report: ${error.message}`);
+    }
+  }
+}
+
+module.exports = Report;
