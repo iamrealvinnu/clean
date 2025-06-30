@@ -12,7 +12,7 @@
         "recharts": "^2.15.4"
     },
     "scripts": {
-        "start": "react-scripts start",
+        "start": "cd client && npm start",
         "build": "react-scripts build",
         "eject": "react-scripts eject"
     },
