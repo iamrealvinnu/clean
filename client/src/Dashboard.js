@@ -18,13 +18,13 @@ import {
   Fade
 } from '@mui/material';
 import {
-  ReportProblemIcon,
-  EmojiEventsIcon,
-  RecyclingIcon,
-  ScheduleIcon,
-  LocationIcon,
+  ReportProblem,
+  EmojiEvents as EmojiEventsIcon,
+  Recycling as RecyclingIcon,
+  Schedule as ScheduleIcon,
+  LocationOn as LocationIcon,
   CheckCircle as CheckCircleIcon,
-  MessageIcon
+  Message as MessageIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { wasteAPI } from './api';
@@ -103,7 +103,7 @@ export default function Dashboard({ user, onLogout }) {
     switch (status) {
       case 'Resolved': return <CheckCircleIcon />;
       case 'In Progress': return <CircularProgress size={16} />;
-      default: return <ReportProblemIcon />;
+      default: return <ReportProblem />;
     }
   };
 
@@ -187,7 +187,7 @@ export default function Dashboard({ user, onLogout }) {
                         variant="contained" 
                         color="warning" 
                         size="large" 
-                        startIcon={<ReportProblemIcon />} 
+                        startIcon={<ReportProblem />} 
                         sx={{ borderRadius: 2 }}
                       >
                         Report Issue

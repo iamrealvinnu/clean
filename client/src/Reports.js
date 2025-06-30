@@ -24,7 +24,7 @@ import {
   Stack
 } from '@mui/material';
 import {
-  ReportProblem as ReportProblemIcon,
+  ReportProblem,
   CheckCircle as CheckCircleIcon,
   HourglassEmpty as HourglassEmptyIcon,
   PhotoCamera as PhotoCameraIcon,
@@ -131,7 +131,7 @@ export default function Reports({ user }) {
     switch (status) {
       case 'Resolved': return <CheckCircleIcon />;
       case 'In Progress': return <HourglassEmptyIcon />;
-      default: return <ReportProblemIcon />;
+      default: return <ReportProblem />;
     }
   };
 
@@ -199,7 +199,7 @@ export default function Reports({ user }) {
                           width: 50,
                           height: 50
                         }}>
-                          <ReportProblemIcon />
+                          <ReportProblem />
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
@@ -358,4 +358,4 @@ export default function Reports({ user }) {
       </Box>
     </Fade>
   );
-} 
+}
